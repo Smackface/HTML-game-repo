@@ -17,8 +17,8 @@
     const screenWidth = 1000;
     const screenHeight = 500;
     let width = 50;
-    let speed = 0;
-
+        let isGameLive = true;
+        
     class GameCharacter{
         constructor(x, y, width, height, color, speed) {
             this.x = x;
@@ -40,33 +40,62 @@
             this.y += this.speed;
         }
         moveHorizontally(xAmount) {
-            this.x += speed;
+            this.x += this.speed;
         }
     }
 
-    var enemies = [
-        new GameCharacter(200, 50, width, width, "rgb (0, 0, 255)", 2),
+    let enemies = [
+        new GameCharacter(200, 50, width, width, "rgb(0, 0, 255)", 2),
 
         new GameCharacter(450, screenHeight-100, width, width, "rgb(0, 0, 255)", 3),
 
         new GameCharacter(600, screenHeight-150, width, width, "rgb(0, 0, 255)", 7),
     ]
 
-    var player = new GameCharacter (50, 225, width, width, "rgb(0, 255, 0)", 0);
+    let player = new GameCharacter (50, 225, width, width, "rgb(0, 255, 0)", 0);
     
+    let goal = new GameCharacter (screenWidth-25, 225, width, width, "cyan", 0);
+
     document.onkeydown = function(event){
         switch(event.key) {
             case 'ArrowRight': 
-            player.speed = player.maxSpeed;
-            break;
+                player.speed = player.maxSpeed;
+                break;
+            case 'ArrowLeft': 
+                player.speed = -player.maxSpeed;
+                break;
         }
     };
 
+    // document.onkeydown = function(event){
+    //     switch(event.key) {
+    //         case 'ArrowLeft' :
+    //             player.speed = -player.maxSpeed;
+    //             break;
+    //     }
+    // };
+
     document.onkeyup = function(event) {
         player.speed =0;
+    };
+
+    let winCondition = function(player, goal){
+        let winning = Math.abs(player.x - goal.x)
+            <= Math.abs(player.width, goal.width);
+        return winning;
     }
 
-    var draw = function() {
+    let checkCollisions = function(rect1, rect2){
+        const xOverlap = Math.abs(rect1.x - rect2.x)
+            <= Math.max(rect1.width, rect2.width);
+
+        const yOverlap = Math.abs(rect1.y - rect2.y)
+            <= Math.max(rect1.height, rect2.height);
+        
+        return xOverlap && yOverlap;
+    }
+
+    let draw = function() {
         ctx.clearRect(0, 0, screenWidth, screenHeight);
         
         ctx.fillStyle = player.color;
@@ -75,23 +104,42 @@
         enemies.forEach(function(element) {
             ctx.fillStyle = element.color;
             ctx.fillRect(element.x, element.y, element.width, element.height);
+       
+        ctx.fillStyle = goal.color;
+        ctx.fillRect(goal.x, goal.y, goal.width, goal.height);
+       
         });
 
 
 
     }
-    var update = function() {
+    let update = function() {
         player.moveHorizontally();
 
         enemies.forEach(function(element){
+            if (checkCollisions(player, element)) {
+                endGameLogic("collision detected")
+            }
+
+            if (winCondition(player, goal)) {
+                endGameLogic("You Win!")
+            }
+
             element.moveVertically();
         });
     }
 
-    var step = function() {
+    let endGameLogic= function(text){
+        isGameLive = false;
+        alert(text);
+        window.location = "";
+    }
+
+    let step = function() {
         update();
         draw();
-        window.requestAnimationFrame(step);
+        if (isGameLive){
+        window.requestAnimationFrame(step)};
     }
 
 
